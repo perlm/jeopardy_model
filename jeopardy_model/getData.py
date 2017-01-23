@@ -14,7 +14,7 @@ def getNameDictionary():
 	global nameAgeDict
 	nameGenderDict={}
 	nameAgeDict={}
-	with open('/home/jason/Dropbox/nameImputation/namesAverage.data','r') as f1:
+	with open('{0}/jeopardy_model/data/namesAverage.data'.format(os.path.expanduser("~")),'r') as f1:
 		for line in f1:
 			cols = line.split()
 			nameGenderDict[str(cols[0])]=str(cols[1])
@@ -39,13 +39,14 @@ def getRawData():
 	getNameDictionary() 
 
 	# find last entry in data file
-        if (os.path.exists('data/raw.data')):
-                with open('data/raw.data','r') as f1:
+	fil = '{0}/jeopardy_model/data/raw.data'.format(os.path.expanduser("~"))
+        if os.path.exists(fil):
+                with open(fil,'r') as f1:
                         for line in f1:
 				start=int(line.split(',')[0])+1
-                f1 = open('data/raw.data','a+')
+                f1 = open(fil,'a+')
         else:
-                f1 = open('data/raw.data','w')
+                f1 = open(fil,'w')
 		start=0
 
 	# look for new games in database
@@ -184,7 +185,7 @@ def getCurrentStatus():
 	maxDate = datetime.datetime.strptime(maxDate,'%Y-%m-%d')
 	maxEp 	= None
 	entry	= None
-	with open('data/raw.data','r') as f1:
+	with open('{0}/jeopardy_model/data/raw.data'.format(os.path.expanduser("~")),'r') as f1:
 		for line in f1:
 			l = line.split(',')
 			if datetime.datetime.strptime(l[2],'%Y-%m-%d') > maxDate:

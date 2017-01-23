@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
 from sklearn import preprocessing, feature_extraction, linear_model, metrics, model_selection
-import math
+import math, os
 
 ####
 # This file contains functions for building the classification model.
@@ -94,7 +94,7 @@ def predict(X_scaled,model):
 
 def readRawFile():
 	# read in csv and return pandas dataframe
-	gameData = pd.read_csv('data/raw.data',delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
+	gameData = pd.read_csv('{0}/jeopardy_model/data/raw.data'.format(os.path.expanduser("~")),delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
 	return gameData
 
 def constructFeatures(dff):

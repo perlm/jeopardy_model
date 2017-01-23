@@ -1,4 +1,7 @@
-#!/usr/bin/python
+from getData import *
+from buildModel import *
+from tweetIt import *
+import datetime, os
 
 ##
 # This is the master script which will call functions from the other scripts.
@@ -6,12 +9,10 @@
 # scheduled to run on cron.
 ## 
 
-from getData import *
-from buildModel import *
-from tweetIt import *
-import datetime
 
 def main():
+        if not os.path.isdir('{}/jeopardy_model/data/'.format(os.path.expanduser("~"))):os.makedirs('{}/jeopardy_model/data'.format(os.path.expanduser("~")))
+
 
 	# download 
 	getRawData()
