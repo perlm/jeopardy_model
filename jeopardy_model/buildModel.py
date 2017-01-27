@@ -82,12 +82,16 @@ def buildLogisticModel(X_scaled,Y,X_fix):
 	return model
 
 
+
+def predict_all(X_scaled,model):
+    # for a given model and independent data, generate predictions
+    y_prob = model.predict_proba(X_scaled)[:,1]
+    return y_prob
+
+
 def predict(X_scaled,model):
 	# for a given model and independent data, generate predictions
-
-        y_prob = model.predict_proba(X_scaled)[:,1]
-	#print X_scaled[-20:]
-	#print y_prob[-20:]
+	y_prob = model.predict_proba(X_scaled)[:,1]
 	print "Avg of predictions= ", np.mean(y_prob)
 	return y_prob[-1:]
 
@@ -98,12 +102,20 @@ def readRawFile():
 	return gameData
 
 def constructFeatures(dff):
+    #####################3
 	# take pandas dataframe and manipulate to construct additional features.
+    #######################
 
 	df = dff.copy()
 	df['avePrevDollars'] = df['winningDollars']/df['winningDays']
 	df['prevWins_capped'] = np.minimum(df['winningDays'],10)
-	df['relative_year'] = 2017-df['date'].str[:4].apply(int)
+	
+	# date variables
+	#df['relative_year'] = 2017-df['date'].str[:4].apply(int)
+	df['date'] = pd.to_datetime(df['date'])
+	df['relative_year'] = 2017-pd.DatetimeIndex(df['date']).year
+	df['afterdatecutoff'] = 0
+	df.loc[(df['date']>'2004-10-04'),'afterdatecutoff'] =  1
 
 	# pandas bucketing!
 	df['age_bucket'] = pd.cut(df['age'],bins=[0,35,55,500],labels=['a_lt35','b_35-55','c_gt55'])
@@ -121,19 +133,38 @@ def constructFeatures(dff):
 	df.loc[df['career'].str.contains('engineer|scien|software|programmer'),'jobs'] = 'tech'
 	df.loc[df['career'].str.contains('home'),'jobs'] = 'home'
 
-	# to check counts
-	#df['age_bucket'].value_counts()
-
 	return df
 
+def return_post_cutoff(df, dateFeature = 'relative_year'):
+	################
+	# take dataframe and return scaled versions after date cutoff for validation
+	################
+    
+	# pick the features! If no date feature, cutoff after rule change (10/2004)
+	if dateFeature is not None:
+		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs',dateFeature]].loc[(df['afterdatecutoff']==1)]
+	else:
+		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs']].loc[(df['afterdatecutoff']==1)]
 
-def processData(df,scaler=None):
+	X_fix = pd.get_dummies(X)
+	scaler = preprocessing.StandardScaler().fit(X_fix)
+	X_scaled = scaler.transform(X_fix)
+	Y = df[['winner']].loc[(df['afterdatecutoff']==1)]
+
+	return X,X_scaled, Y, scaler, X_fix
+
+
+def processData(df, dateFeature = 'relative_year', scaler=None):
+	################3
 	# take dataframe and reformat for sci-kit learn including normalization
-
-	X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs','relative_year']]
-	#X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs','Avg_Dollars_buckets']]
-
-	#print X.head(n=5)
+	# include form of date feature as parameter so I can test its effect
+	################
+    
+	# pick the features! If no date feature, cutoff after rule change (10/2004)
+	if dateFeature is not None:
+		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs',dateFeature]]
+	else:
+		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs']]
 
 	# scikit learn can only handle numeric or dummy.
 	# need to make multiple columns of 1/0 dummies
@@ -144,27 +175,22 @@ def processData(df,scaler=None):
 	#X_fix['Avg_Dollars_buckets_a_lt10k'] = X_fix['Avg_Dollars_buckets_a_lt10k']*X_fix['prevWins_capped']
 	#X_fix['Avg_Dollars_buckets_b_10-30k'] = X_fix['Avg_Dollars_buckets_b_10-30k']*X_fix['prevWins_capped']
 	#X_fix['Avg_Dollars_buckets_c_gt30k'] = X_fix['Avg_Dollars_buckets_c_gt30k']*X_fix['prevWins_capped']
-	#print X_fix.head(n=5)
 	
-
 	if scaler is None:
-		scaler = preprocessing.StandardScaler().fit(X_fix)	#this allows me to re-use the scaler...
-		X_scaled = scaler.transform(X_fix) 
+		scaler = preprocessing.StandardScaler().fit(X_fix)
+		X_scaled = scaler.transform(X_fix)
 	else:
-		X_scaled = scaler.transform(X_fix) 
-
-	#print X_scaled
-
+		X_scaled = scaler.transform(X_fix)
+	
 	Y = df[['winner']]
-       	print "Win Rate in data:\n", Y['winner'].value_counts(), "\n"
-	#X = np.matrix.transpose(np.vstack((prevWins, totalPrevDollars)))
-
+	print "Win Rate in data:\n", Y['winner'].value_counts(), "\n"
+    
 	return X,X_scaled, Y, scaler, X_fix
 
+	
 def addRow(df, features):
 	# add in row of new data which needs to be predicted.
-
-        #gameData = pd.read_csv('data/raw.data',delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
+	#gameData = pd.read_csv('data/raw.data',delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
 	#features = {'date':date,'days':winningDays,'dollars':winningDollars,'gender':gender,'age':age,'name':name.replace(',',' '),'career':career.replace(',',' '),'location':location.replace(',',' ')}
 
 	# given a dictionary of values for new row, turn it into a matching dataframe
@@ -184,14 +210,7 @@ def addRow(df, features):
 	# column order looks like dict, rather than dataframe.
 	newrow2 = newrow[['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location']]
 
-	#print df.head(n=5)
-	#print df.tail(n=5)
-	#print features
-	#print newrow2.tail(n=5)
-
 	df2 = pd.concat([df, newrow2])
-	print df2.tail(n=5)
-
 	return(df2)
 
 if __name__ == '__main__':

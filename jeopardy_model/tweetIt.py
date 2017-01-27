@@ -19,6 +19,28 @@ def tweetProb(features):
 	print "Tweet Sent:\n%s" % (str(tweet))
 
 
+def store_predictions(df,pred):
+    ####
+    # store predictions for future evaluation!
+    ######
+    fil = '{}/jeopardy_model/data/predictions.csv'.format(os.path.expanduser("~"))
+
+    df['date'] = pd.to_datetime(df['date'])
+    df['prediction'] = pred
+    df = df.loc[(df['date']==datetime.date.today())]
+
+    if (os.path.exists(fil)):
+        prev = pd.read_csv(fil,delimiter=',',header=0)
+        prev['date'] = pd.to_datetime(prev['date'])
+
+        # check if this date is already in there    
+        # the max of a datetime column is a timestamp object.
+        if datetime.datetime.strptime(str(prev['date'].max())[:10],"%Y-%m-%d").date()<datetime.datetime.today().date():
+            df.to_csv(fil, header=False, index=False,mode='a')
+    else:
+        df.to_csv(fil, header=True, index=False)
+
+
 if __name__ == '__main__':
 	features = {}
 	tweetProb(features)
