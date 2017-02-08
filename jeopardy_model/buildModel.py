@@ -82,19 +82,16 @@ def buildLogisticModel(X_scaled,Y,X_fix):
 	return model
 
 
-
 def predict_all(X_scaled,model):
     # for a given model and independent data, generate predictions
     y_prob = model.predict_proba(X_scaled)[:,1]
     return y_prob
-
 
 def predict(X_scaled,model):
 	# for a given model and independent data, generate predictions
 	y_prob = model.predict_proba(X_scaled)[:,1]
 	print "Avg of predictions= ", np.mean(y_prob)
 	return y_prob[-1:]
-
 
 def readRawFile():
 	# read in csv and return pandas dataframe
@@ -116,6 +113,10 @@ def constructFeatures(dff):
 	df['relative_year'] = 2017-pd.DatetimeIndex(df['date']).year
 	df['afterdatecutoff'] = 0
 	df.loc[(df['date']>'2004-10-04'),'afterdatecutoff'] =  1
+
+    #monday
+	df['monday'] = 0
+	df.loc[(pd.DatetimeIndex(df['date']).dayofweek==0),'monday'] =  1
 
 	# pandas bucketing!
 	df['age_bucket'] = pd.cut(df['age'],bins=[0,35,55,500],labels=['a_lt35','b_35-55','c_gt55'])
@@ -161,31 +162,32 @@ def processData(df, dateFeature = 'relative_year', scaler=None):
 	################
     
 	# pick the features! If no date feature, cutoff after rule change (10/2004)
-	if dateFeature is not None:
-		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs',dateFeature]]
-	else:
-		X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs']]
+    if dateFeature is not None:
+        X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs',dateFeature]]
+    else:
+        X = df[['prevWins_capped','avePrevDollars','gender','age_bucket','cityofchampions','jobs']]
 
 	# scikit learn can only handle numeric or dummy.
 	# need to make multiple columns of 1/0 dummies
 	# https://gist.github.com/ramhiser/982ce339d5f8c9a769a0
-	X_fix = pd.get_dummies(X)
+    X_fix = pd.get_dummies(X)
 
-	# Could try this interaction term!
-	#X_fix['Avg_Dollars_buckets_a_lt10k'] = X_fix['Avg_Dollars_buckets_a_lt10k']*X_fix['prevWins_capped']
-	#X_fix['Avg_Dollars_buckets_b_10-30k'] = X_fix['Avg_Dollars_buckets_b_10-30k']*X_fix['prevWins_capped']
-	#X_fix['Avg_Dollars_buckets_c_gt30k'] = X_fix['Avg_Dollars_buckets_c_gt30k']*X_fix['prevWins_capped']
-	
-	if scaler is None:
-		scaler = preprocessing.StandardScaler().fit(X_fix)
-		X_scaled = scaler.transform(X_fix)
-	else:
-		X_scaled = scaler.transform(X_fix)
-	
-	Y = df[['winner']]
-	print "Win Rate in data:\n", Y['winner'].value_counts(), "\n"
+    # Could try this interaction term!
+    #X_fix['Avg_Dollars_buckets_a_lt10k'] = X_fix['Avg_Dollars_buckets_a_lt10k']*X_fix['prevWins_capped']
+    #X_fix['Avg_Dollars_buckets_b_10-30k'] = X_fix['Avg_Dollars_buckets_b_10-30k']*X_fix['prevWins_capped']
+    #X_fix['Avg_Dollars_buckets_c_gt30k'] = X_fix['Avg_Dollars_buckets_c_gt30k']*X_fix['prevWins_capped']
     
-	return X,X_scaled, Y, scaler, X_fix
+    Y = df[['winner']]
+    if scaler is None:
+        print "Win Rate in data= ", Y['winner'].mean()
+	
+    if scaler is None:
+        scaler = preprocessing.StandardScaler().fit(X_fix)
+        X_scaled = scaler.transform(X_fix)
+    else:
+        X_scaled = scaler.transform(X_fix)
+
+    return X,X_scaled, Y, scaler, X_fix
 
 	
 def addRow(df, features):
@@ -216,6 +218,7 @@ def addRow(df, features):
 if __name__ == '__main__':
 	df = readRawFile()
 	df = constructFeatures(df)
+	df = df.loc[(df['afterdatecutoff']==1)]
 	X, X_scaled, Y, scaler, X_fix = processData(df)
 	model = buildLogisticModel(X_scaled,Y,X_fix)
 

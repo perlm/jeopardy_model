@@ -5,7 +5,8 @@
 ##
 
 from twitter import *
-import ConfigParser, os
+import pandas as pd
+import ConfigParser, os, datetime
 
 def tweetProb(features):
 	tweet = '{n} is a {day}-day champ with ${dol} winnings: #Jeopardy model predicts {p}% prob to win! (as of {date}) https://hastydata.wordpress.com/2016/11/26/modeling-jeopardy-revisited/'.format(n=str(features['name']), day=str(features['days']),dol=str(features['dollars']),p=int(100*round(float(features['prob']),2)),date=str(features['date']) )
