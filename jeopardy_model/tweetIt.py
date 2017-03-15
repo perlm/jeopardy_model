@@ -15,9 +15,12 @@ def tweetProb(features):
 	config.read('{0}/.python_keys.conf'.format(os.path.expanduser("~")))
 
 	t = Twitter(auth=OAuth(token=config.get('twitter','token'), token_secret=config.get('twitter','token_secret'), consumer_key=config.get('twitter','consumer_key'), consumer_secret=config.get('twitter','consumer_secret')))
-	t.statuses.update(status=tweet)
+	try:
+		t.statuses.update(status=tweet)
+		print "Tweet Sent:\n%s" % (str(tweet))
+	except TwitterHTTPError:
+		print "Tweet Rejected:\n%s" % (str(tweet))
 
-	print "Tweet Sent:\n%s" % (str(tweet))
 
 
 def store_predictions(df,pred):
@@ -28,13 +31,14 @@ def store_predictions(df,pred):
 
     df['date'] = pd.to_datetime(df['date'])
     df['prediction'] = pred
-    df = df.loc[(df['date']==datetime.date.today())]
+    #df = df.loc[(df['date']==df['date'].max())]
+    df = df.loc[(df['winner']==0)]
 
     if (os.path.exists(fil)):
         prev = pd.read_csv(fil,delimiter=',',header=0)
         prev['date'] = pd.to_datetime(prev['date'])
 
-        # check if this date is already in there    
+        # check if this date is already in there (it's the date of prev win)   
         # the max of a datetime column is a timestamp object.
         if datetime.datetime.strptime(str(prev['date'].max())[:10],"%Y-%m-%d").date()<datetime.datetime.today().date():
             df.to_csv(fil, header=False, index=False,mode='a')

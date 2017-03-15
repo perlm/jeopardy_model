@@ -1,0 +1,2 @@
+g,gameNumber,date,winningDays,winningDollars,winner,gender,age,name,career,location,avePrevDollars,prevWins_capped,relative_year,afterdatecutoff,monday,age_bucket,Avg_Dollars_buckets,cityofchampions,jobs,prediction
+0,0,2017-03-14,1,23400,0,M,24.7,Grant McSheffrey,software developer,Ottawa Ontario Canada,23400.0,1,0,1,0,a_lt35,b_10-30k,0,tech,0.476478234011

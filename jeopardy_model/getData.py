@@ -50,7 +50,7 @@ def getRawData():
 		start=0
 
 	# look for new games in database
-	for g in xrange(start,max(start+10,6000)):
+	for g in xrange(start,start+10):
 		epInfo = getEpisodeInfo(g)
 		if epInfo is None:continue
 		f1.write(epInfo)
@@ -248,6 +248,7 @@ def getCurrentStatus():
 			if win==x:break
 			else:x+=1
 
+	#date of last game
 	date = entry[2]
 
 	gender = None
