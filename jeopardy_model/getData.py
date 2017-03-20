@@ -50,10 +50,16 @@ def getRawData():
 		start=0
 
 	# look for new games in database
-	for g in xrange(start,start+10):
+	# check 10 past most recent game
+	end	= start
+	g	= start
+	while g <= end+10:
 		epInfo = getEpisodeInfo(g)
-		if epInfo is None:continue
-		f1.write(epInfo)
+		if epInfo is not None:
+			f1.write(epInfo)
+			end = g
+		g += 1
+
 
 
 def getEpisodeInfo(g):
