@@ -24,7 +24,7 @@ def main():
 	model = buildLogisticModel(X_scaled,Y,X_fix)
 
 	# predict - df3 is with additional row for predictions. then process in exact same way.
-	features = getCurrentStatus()
+	features,lastWin = getCurrentStatus()
 	d3 = addRow(d,features)
 	d4 = constructFeatures(d3)
 	d4 = d4.loc[(d4['afterdatecutoff']==1)]
@@ -33,8 +33,8 @@ def main():
 	features['prob'] = prob
 
 	# tweet it!
-	daysOld = datetime.date.today() - datetime.datetime.strptime(features['date'],'%Y-%m-%d').date()
-	print "Last game is ", daysOld, " days old. From ", features['date']
+	daysOld = datetime.date.today() - datetime.datetime.strptime(lastWin,'%Y-%m-%d').date()
+	print "Last game is ", daysOld, " days old. From ", lastWin
 
 	if (datetime.datetime.today().weekday()==0 and daysOld.days <= 3) or (datetime.datetime.today().weekday()<=4 and daysOld.days <= 1):
 		tweetProb(features)

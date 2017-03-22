@@ -254,8 +254,10 @@ def getCurrentStatus():
 			if win==x:break
 			else:x+=1
 
-	#date of last game
-	date = entry[2]
+	#date of last win
+	lastWin = entry[2]
+	# today's date
+	date = datetime.date.today()
 
 	gender = None
 	age = None
@@ -266,7 +268,7 @@ def getCurrentStatus():
 
         features = {'date':date,'days':winningDays,'dollars':winningDollars,'gender':gender,'age':age,'name':name.replace(',',' '),'career':career.replace(',',' '),'location':location.replace(',',' ')}
 
-	return features
+	return features, lastWin
 
 
 if __name__ == '__main__':
