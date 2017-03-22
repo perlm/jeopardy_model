@@ -1,3 +1,4 @@
 g,gameNumber,date,winningDays,winningDollars,winner,gender,age,name,career,location,avePrevDollars,prevWins_capped,relative_year,afterdatecutoff,monday,age_bucket,Avg_Dollars_buckets,cityofchampions,jobs,prediction
 0,0,2017-03-15,1,23400,0,M,24.7,Grant McSheffrey,software developer,Ottawa Ontario Canada,23400.0,1,0,1,0,a_lt35,b_10-30k,0,tech,0.476478234011
 0,0,2017-03-20,1,31200,0,F,39.6,Rebecca Wald,Wald a psychologist,Baltimore Maryland,31200.0,1,0,1,0,b_35-55,c_gt30k,1,other,0.466221375367
+0,0,2017-03-22,1,17200,0,M,37.4,Kevin Shrum,retired adjunct professor,Fort Collins Colorado,17200.0,1,0,1,0,b_35-55,b_10-30k,0,teacher,0.439170184482
