@@ -197,6 +197,7 @@ def getCurrentStatus():
 			if datetime.datetime.strptime(l[2],'%Y-%m-%d') > maxDate:
 				maxEp = l[0]
 				entry = l
+				maxDate = datetime.datetime.strptime(l[2],'%Y-%m-%d')
 	
 	baseURL1='http://www.j-archive.com/showgame.php?game_id={0}'
 	url = (baseURL1.format(maxEp))
