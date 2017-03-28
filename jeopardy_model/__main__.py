@@ -1,6 +1,7 @@
 from .getData import *
 from .buildModel import *
 from .tweetIt import *
+from .validation import *
 import datetime, os
 
 ##
@@ -41,6 +42,11 @@ def main():
 		
 		probs = predict_all(X_scaled,model)
 		store_predictions(d4,probs)
+
+        ##########
+        # validate previous predictions!
+        validate()
+
 
 
 
