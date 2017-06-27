@@ -2,7 +2,7 @@ from .getData import *
 from .buildModel import *
 from .tweetIt import *
 from .validation import *
-import datetime, os
+import datetime, os, pickle, bz2
 
 ##
 # This is the master script which will call functions from the other scripts.
@@ -24,8 +24,18 @@ def main():
 	X, X_scaled, Y, scaler, X_fix = processData(d2,dateFeature = None)
 	model = buildLogisticModel(X_scaled,Y,X_fix)
 
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.model".format(os.path.expanduser("~")),"w") as f:
+		pickle.dump(model, f)
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.scaler".format(os.path.expanduser("~")),"w") as f:
+		pickle.dump(scaler, f)
+
 	# predict - df3 is with additional row for predictions. then process in exact same way.
-	features,lastWin = getCurrentStatus()
+	gamePage = getMostRecentSoup()
+	for g in gamePage:
+		features,lastWin = getCurrentStatus(g)
+		if features is not None:
+			break
+
 	d3 = addRow(d,features)
 	d4 = constructFeatures(d3)
 	d4 = d4.loc[(d4['afterdatecutoff']==1)]

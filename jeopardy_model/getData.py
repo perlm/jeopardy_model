@@ -181,7 +181,7 @@ def getEpisodeInfo(g):
 
 
 
-def getCurrentStatus():
+def getMostRecentLocal():
 	# the format the new champ is different- there is no existing page to scrape yet.
 	# for the purposes of prediction, I want what the new champ in the same format.
 
@@ -198,10 +198,53 @@ def getCurrentStatus():
 				maxEp = l[0]
 				entry = l
 				maxDate = datetime.datetime.strptime(l[2],'%Y-%m-%d')
-	
+
 	baseURL1='http://www.j-archive.com/showgame.php?game_id={0}'
 	url = (baseURL1.format(maxEp))
+	return url
+	
+def getCurrentStatus(url):
+	# the format the new champ is different- there is no existing page to scrape yet.
+	# for the purposes of prediction, I want what the new champ in the same format.
+
+	getNameDictionary()
 	r = getSoup(url)
+
+	# check that it's a valid ep
+        skips = ["Tournament","Kids","College","School Week","Celebrity","Million Dollar Masters","Super Jeopardy","Three-way tie at zero","didn't have a winner"]
+        errorCheck = r.find('p', attrs={"class": "error"})
+        tourCheck = r.find('div', attrs={"id":"game_comments"})
+        if errorCheck:return None
+        if any(s in tourCheck.get_text() for s in skips):return None
+
+
+        # pull out properties pregame
+        for p in r.findAll('p', attrs={"class": "contestants"}):
+		intro= p.get_text().replace(',','')
+                prevWin = (re.search(r'an? (.+) (originally )?from (.+) \(whose ([0-9]+)-day cash winnings total \$([0-9]+)\)$', unicode(intro), re.M|re.I))
+                name = p.find('a')
+
+                if prevWin:
+                        career=prevWin.group(1)
+                        location=prevWin.group(3)
+                        winningDays=int(prevWin.group(4))
+                        winningDollars=int(prevWin.group(5))
+                        returnChamp = name.get_text().encode('ascii', 'ignore')
+
+        if (not winningDays) or (not winningDollars):
+                print "No previous winner %d" % g
+                return None
+
+
+        # get episode date
+        title = r.find('title').get_text()
+        showNumber = (re.search(r'Show #([0-9]*), aired (.*)$', unicode(title), re.M|re.I))
+        if showNumber:
+                gameNumber = int(showNumber.group(1))
+                date = showNumber.group(2).encode('ascii', 'ignore')
+        else:
+                print "Error: Not valid %d" % g
+                return None
 
 	# look at final scores
 	scores=[]
@@ -222,16 +265,16 @@ def getCurrentStatus():
 			maxScore=scores[s]
 			win=s
 
-	assert ((int(entry[5])==1 and win==0) or (int(entry[5])==-1 and win!=0))
-
-	#print "returning or not=", entry[5], win
-	if int(entry[5])==1:
-		winningDays 	= int(entry[3]) + 1
-		winningDollars 	= int(entry[4]) + maxScore
-		career 		= entry[9]
-		location	= entry[10]
-		name		= entry[8]
-		first 		= name.split()[0]
+	# changing from loading from csv, to pulling direct, to avoid storing files locally
+	#assert ((int(entry[5])==1 and win==0) or (int(entry[5])==-1 and win!=0))
+	#if int(entry[5])==1:
+	if win==0:
+		winningDays 	= winningDays +1 #int(entry[3]) + 1
+		winningDollars 	= winningDollars + maxScore #int(entry[4]) + maxScore
+		#career 		= entry[9]
+		#location	= entry[10]
+		#name		= entry[8]
+		#first 		= name.split()[0]
 	else:
 		winningDays	= 1
 		winningDollars	= maxScore
@@ -256,9 +299,9 @@ def getCurrentStatus():
 			else:x+=1
 
 	#date of last win
-	lastWin = entry[2]
+	lastWin = date #entry[2]
 	# today's date
-	date = datetime.date.today()
+	#date = datetime.date.today()
 
 	gender = None
 	age = None
@@ -270,6 +313,30 @@ def getCurrentStatus():
         features = {'date':date,'days':winningDays,'dollars':winningDollars,'gender':gender,'age':age,'name':name.replace(',',' '),'career':career.replace(',',' '),'location':location.replace(',',' ')}
 
 	return features, lastWin
+
+def getMostRecentSoup():
+	# instead of referring to dataset, just scrape the most recent page.
+
+	u = 'http://www.j-archive.com/listseasons.php'
+	soup = getSoup(u)
+	# get most recent season page.
+	for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
+    		if link.has_attr('href'):
+			if link['href'] =='http://www.j-archive.com':
+				continue
+			l = link['href']
+			break
+
+	# get list of games in order.
+	soup = getSoup(l)
+	gamePages = [] 
+	for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
+		if link.has_attr('href'):
+			if 'game' in link['href']:
+				gamePages.append(link['href'])
+
+	# This returns list! Other function returns most recent non-tournament!
+	return gamePages
 
 
 if __name__ == '__main__':
