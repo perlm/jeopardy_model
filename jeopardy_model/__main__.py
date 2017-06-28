@@ -28,6 +28,8 @@ def main():
 		pickle.dump(model, f)
 	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.scaler".format(os.path.expanduser("~")),"w") as f:
 		pickle.dump(scaler, f)
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.indexdict".format(os.path.expanduser("~")),"w") as f:
+		pickle.dump(X_fix.columns, f)
 
 	# predict - df3 is with additional row for predictions. then process in exact same way.
 	gamePage = getMostRecentSoup()
@@ -36,10 +38,11 @@ def main():
 		if features is not None:
 			break
 
-	d3 = addRow(d,features)
+	#d3 = addRow(d,features)
+	d3 = createNewInput(features) 
 	d4 = constructFeatures(d3)
 	d4 = d4.loc[(d4['afterdatecutoff']==1)]
-	X, X_scaled, Y, scaler, X_fix = processData(d4, None,scaler)
+	X, X_scaled, Y, scaler, X_fix = processData(d4, None,scaler,X_fix.columns)
 	prob = predict(X_scaled,model)
 	features['prob'] = prob
 

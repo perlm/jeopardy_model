@@ -273,8 +273,8 @@ def getCurrentStatus(url):
 		winningDollars 	= winningDollars + maxScore #int(entry[4]) + maxScore
 		#career 		= entry[9]
 		#location	= entry[10]
-		#name		= entry[8]
-		#first 		= name.split()[0]
+		name		= returnChamp #entry[8]
+		first 		= name.split()[0]
 	else:
 		winningDays	= 1
 		winningDollars	= maxScore

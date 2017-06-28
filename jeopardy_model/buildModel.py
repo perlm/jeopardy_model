@@ -155,7 +155,7 @@ def return_post_cutoff(df, dateFeature = 'relative_year'):
 	return X,X_scaled, Y, scaler, X_fix
 
 
-def processData(df, dateFeature = 'relative_year', scaler=None):
+def processData(df, dateFeature = 'relative_year', scaler=None, columns=None):
 	################3
 	# take dataframe and reformat for sci-kit learn including normalization
 	# include form of date feature as parameter so I can test its effect
@@ -172,6 +172,10 @@ def processData(df, dateFeature = 'relative_year', scaler=None):
 	# https://gist.github.com/ramhiser/982ce339d5f8c9a769a0
     X_fix = pd.get_dummies(X)
 
+    if columns is not None:
+	X_fix = X_fix.reindex(columns = columns, fill_value=0)
+
+
     # Could try this interaction term!
     #X_fix['Avg_Dollars_buckets_a_lt10k'] = X_fix['Avg_Dollars_buckets_a_lt10k']*X_fix['prevWins_capped']
     #X_fix['Avg_Dollars_buckets_b_10-30k'] = X_fix['Avg_Dollars_buckets_b_10-30k']*X_fix['prevWins_capped']
@@ -180,8 +184,6 @@ def processData(df, dateFeature = 'relative_year', scaler=None):
     Y = df[['winner']]
     if scaler is None:
         print "Win Rate in data= ", Y['winner'].mean()
-	
-    if scaler is None:
         scaler = preprocessing.StandardScaler().fit(X_fix)
         X_scaled = scaler.transform(X_fix)
     else:
@@ -214,6 +216,27 @@ def addRow(df, features):
 
 	df2 = pd.concat([df, newrow2])
 	return(df2)
+
+def createNewInput(features):
+        # given a dictionary of values for new row, turn it into a matching dataframe
+        nr = {'g':pd.Series([0]),
+                'gameNumber':pd.Series([0]),
+                'date':pd.Series([features['date']]),
+                'winningDays':pd.Series([int(features['days'])]),
+                'winningDollars':pd.Series([int(features['dollars'])]),
+                'winner':pd.Series([0]),
+                'gender':pd.Series([features['gender']]),
+                'age':pd.Series([features['age']]),
+                'name':pd.Series([features['name']]),
+                'career':pd.Series([features['career']]),
+                'location':pd.Series([features['location']])}
+        newrow = pd.DataFrame(nr)
+
+        # column order looks like dict, rather than dataframe.
+        newrow2 = newrow[['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location']]
+	return(newrow2)
+
+
 
 if __name__ == '__main__':
 	df = readRawFile()
