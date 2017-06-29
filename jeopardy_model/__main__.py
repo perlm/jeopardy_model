@@ -24,11 +24,11 @@ def main():
 	X, X_scaled, Y, scaler, X_fix = processData(d2,dateFeature = None)
 	model = buildLogisticModel(X_scaled,Y,X_fix)
 
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.model".format(os.path.expanduser("~")),"w") as f:
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.pickle".format(os.path.expanduser("~")),"w") as f:
 		pickle.dump(model, f)
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.scaler".format(os.path.expanduser("~")),"w") as f:
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/scaler.pickle".format(os.path.expanduser("~")),"w") as f:
 		pickle.dump(scaler, f)
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.indexdict".format(os.path.expanduser("~")),"w") as f:
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/indexDict.pickle".format(os.path.expanduser("~")),"w") as f:
 		pickle.dump(X_fix.columns, f)
 
 	# predict - df3 is with additional row for predictions. then process in exact same way.

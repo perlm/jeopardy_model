@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
-import requests, string, time, re, os, sys,datetime
+import requests, string, time, re, os, sys,datetime, bz2, pickle
 
 #####
 # The objective of this script is to scrape data from the Jeopardy archive so that it can be analyzed and I can make a predictive model.
 #####
 
-def getNameDictionary():
+def getNameDictionaryCSV():
 	# I separately have a dictionary of gender and age by name. Pull in this info for modeling.
 	# make these global, so I don't need to remember to pass them around or reread the file
 	global nameGenderDict
@@ -20,6 +20,14 @@ def getNameDictionary():
 			nameGenderDict[str(cols[0])]=str(cols[1])
 			nameAgeDict[str(cols[0])]=float(cols[2])
 	#return nameGenderDict, nameAgeDict
+
+def getNameDictionary():
+	global nameGenderDict
+	global nameAgeDict
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/nameGend.pickle".format(os.path.expanduser("~")),"r") as f:
+                        nameGenderDict = pickle.load(f)
+	with bz2.BZ2File("{}/jeopardy_model/model_pickles/nameAge.pickle".format(os.path.expanduser("~")),"r") as f:
+                        nameAgeDict = pickle.load(f)
 
 
 def getSoup(url):
@@ -341,6 +349,6 @@ def getMostRecentSoup():
 
 if __name__ == '__main__':
 	#getRawData()
-	print getCurrentStatus()
+	getNameDictionary()
 
 

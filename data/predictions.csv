@@ -14,3 +14,5 @@ g,gameNumber,date,winningDays,winningDollars,winner,gender,age,name,career,locat
 ",20495.5,2,0,1,1,b_35-55,b_10-30k,0,law,0.498475515631
 0,0,2017-06-26,1,20001,0,M,23.7,Brandon Randall,student,Provo Utah,20001.0,1,0,1,1,a_lt35,b_10-30k,0,student,0.50604391647
 0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.562622575268
+0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.562621045476
+0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.56262175295
