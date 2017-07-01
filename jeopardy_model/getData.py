@@ -222,10 +222,12 @@ def getCurrentStatus(url):
         skips = ["Tournament","Kids","College","School Week","Celebrity","Million Dollar Masters","Super Jeopardy","Three-way tie at zero","didn't have a winner"]
         errorCheck = r.find('p', attrs={"class": "error"})
         tourCheck = r.find('div', attrs={"id":"game_comments"})
-        if errorCheck:return None
-        if any(s in tourCheck.get_text() for s in skips):return None
+        if errorCheck:return None,None
+        if any(s in tourCheck.get_text() for s in skips):return None,None
 
 
+	winningDays=None
+	winningDollars=None
         # pull out properties pregame
         for p in r.findAll('p', attrs={"class": "contestants"}):
 		intro= p.get_text().replace(',','')
@@ -239,9 +241,9 @@ def getCurrentStatus(url):
                         winningDollars=int(prevWin.group(5))
                         returnChamp = name.get_text().encode('ascii', 'ignore')
 
-        if (not winningDays) or (not winningDollars):
-                print "No previous winner %d" % g
-                return None
+        if (winningDays is None) or (winningDollars is None):
+                print "No previous winner- %s" % url
+                return None,None
 
 
         # get episode date
@@ -251,8 +253,8 @@ def getCurrentStatus(url):
                 gameNumber = int(showNumber.group(1))
                 date = showNumber.group(2).encode('ascii', 'ignore')
         else:
-                print "Error: Not valid %d" % g
-                return None
+                print "Error: Not valid %s" % url
+                return None,None
 
 	# look at final scores
 	scores=[]
