@@ -16,3 +16,8 @@ g,gameNumber,date,winningDays,winningDollars,winner,gender,age,name,career,locat
 0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.562622575268
 0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.562621045476
 0,0,2017-06-27,2,42002,0,M,23.7,Brandon Randall,student,Provo Utah,21001.0,2,0,1,0,a_lt35,b_10-30k,0,student,0.56262175295
+0,0,2017-07-17,1,36800,0,F,56.4,Deborah Elliott,educator,Cleveland Ohio,36800.0,1,0,1,1,c_gt55,c_gt30k,0,other,0.495161313092
+0,0,2017-07-18,2,56600,0,F,56.4,Deborah Elliott,educator,Cleveland Ohio,28300.0,2,0,1,0,c_gt55,b_10-30k,0,other,0.480487808573
+0,0,2017-07-26,5,110000,0,M,25.6,Justin Vossler,high school history teacher,Homer New York,22000.0,5,0,1,0,a_lt35,b_10-30k,0,teacher,0.58993529591
+0,0,2017-07-28,2,18000,0,M,22.0,Shadi Peterman,a high school history teacher,St. Louis Missouri,9000.0,2,0,1,0,a_lt35,a_lt10k,0,teacher,0.429619947957
+0,0,2017-10-03,6,257700,0,M,18.4,Austin Rogers,bartender,New York New York,42950.0,6,0,1,0,a_lt35,c_gt30k,1,other,0.738964463613
