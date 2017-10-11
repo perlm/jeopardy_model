@@ -95,8 +95,6 @@ def predict(X_scaled,model):
 
 def readRawFile():
 	# read in csv from s3 and return pandas dataframe
-	s3 = boto3.client('s3')
-	#obj = s3.get_object(Bucket='jeopardydata', Key='raw.data')
 	gameData = pd.read_csv('s3://jeopardydata/raw.data',delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
 	return gameData
 

@@ -177,19 +177,167 @@ def getEpisodeInfo(g):
         epInfo = '{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n'.format(g, gameNumber, date, winningDays, winningDollars, winner, gender, age, returnChamp.replace(',',' '), career.replace(',',' '), location.replace(',',' ') )
         return epInfo
 
+def getCurrentStatus(url):
+	# the format the new champ is different- there is no existing page to scrape yet.
+	# for the purposes of prediction, I want what the new champ in the same format.
+
+	#getNameDictionary()
+	r = getSoup(url)
+
+	# check that it's a valid ep
+        skips = ["Tournament","Kids","College","School Week","Celebrity","Million Dollar Masters","Super Jeopardy","Three-way tie at zero","didn't have a winner"]
+        errorCheck = r.find('p', attrs={"class": "error"})
+        tourCheck = r.find('div', attrs={"id":"game_comments"})
+        if errorCheck:return None,None
+        if any(s in tourCheck.get_text() for s in skips):return None,None
+
+
+	winningDays=None
+	winningDollars=None
+        # pull out properties pregame
+        for p in r.findAll('p', attrs={"class": "contestants"}):
+		intro= p.get_text().replace(',','')
+                prevWin = (re.search(r'an? (.+) (originally )?from (.+) \(whose ([0-9]+)-day cash winnings total \$([0-9]+)\)$', unicode(intro), re.M|re.I))
+                name = p.find('a')
+
+                if prevWin:
+                        career=prevWin.group(1)
+                        location=prevWin.group(3)
+                        winningDays=int(prevWin.group(4))
+                        winningDollars=int(prevWin.group(5))
+                        returnChamp = name.get_text().encode('ascii', 'ignore')
+
+        if (winningDays is None) or (winningDollars is None):
+                print "No previous winner- %s" % url
+                return None,None
+
+
+        # get episode date
+        title = r.find('title').get_text()
+        showNumber = (re.search(r'Show #([0-9]*), aired (.*)$', unicode(title), re.M|re.I))
+        if showNumber:
+                gameNumber = int(showNumber.group(1))
+                date = showNumber.group(2).encode('ascii', 'ignore')
+        else:
+                print "Error: Not valid %s" % url
+                return None,None
+
+	# look at final scores
+	scores=[]
+	for h3 in r.find_all('h3'):
+		if h3.get_text() == 'Final scores:':
+			following = h3.next.next.next
+			for s in following.find_all('td', attrs={"class":['score_positive', 'score_negative']}):
+				dollar= int(s.get_text().replace(',','').replace('$',''))
+				if 'positive' in str(s):scores.append(dollar)
+				elif 'negative' in str(s):scores.append(dollar*-1)
+
+	assert len(scores)==3
+
+	maxScore=-1
+	win=None
+	for s in xrange(3):
+		if (scores[s]>maxScore):
+			maxScore=scores[s]
+			win=s
+
+	# changing from loading from csv, to pulling direct, to avoid storing files locally
+	#assert ((int(entry[5])==1 and win==0) or (int(entry[5])==-1 and win!=0))
+	#if int(entry[5])==1:
+	if win==0:
+		winningDays 	= winningDays +1 #int(entry[3]) + 1
+		winningDollars 	= winningDollars + maxScore #int(entry[4]) + maxScore
+		#career 		= entry[9]
+		#location	= entry[10]
+		name		= returnChamp #entry[8]
+		first 		= name.split()[0]
+	else:
+		winningDays	= 1
+		winningDollars	= maxScore
+		
+		# at the top (where names/careers are) champ is last
+		# at the bottom (where final scores are) champ is first
+		# if win==0 then it's not here. if win==1 then fine. if win==2, then set to zer0.
+
+		if win==2:win=0
+
+		x=0
+		for p in r.findAll('p', attrs={"class": "contestants"}):
+			intro= p.get_text().replace(',','')
+			contestant = (re.search(r'an? (.+) (originally )?from (.+)', unicode(intro), re.M|re.I))
+			namerow = p.find('a')
+			if contestant:
+				career	= contestant.group(1)
+				location= contestant.group(3)
+				name 	= namerow.get_text().encode('ascii', 'ignore')
+				first 	= name.split()[0]
+			if win==x:break
+			else:x+=1
+
+	#date of last win
+	lastWin = date #entry[2]
+	# today's date
+	#date = datetime.date.today()
+
+	gender = None
+	age = None
+	if first in nameGenderDict:gender = nameGenderDict[first]
+	else:gender = 'U'
+	if first in nameAgeDict:age = round(nameAgeDict[first],1)
+	else:age = 36.8
+
+        features = {'date':date,'days':winningDays,'dollars':winningDollars,'gender':gender,'age':age,'name':name.replace(',',' '),'career':career.replace(',',' '),'location':location.replace(',',' ')}
+
+	return features, lastWin
+
+def getMostRecentSoup():
+	# instead of referring to dataset, just scrape the most recent page.
+
+	u = 'http://www.j-archive.com/listseasons.php'
+	soup = getSoup(u)
+	# get most recent season page.
+	for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
+    		if link.has_attr('href'):
+			if link['href'] =='http://www.j-archive.com':
+				continue
+			l = link['href']
+			break
+
+	# get list of games in order.
+	soup = getSoup(l)
+	gamePages = [] 
+	for link in soup.findAll('a', attrs={'href': re.compile("^http://")}):
+		if link.has_attr('href'):
+			if 'game' in link['href']:
+				gamePages.append(link['href'])
+
+	# This returns list! Other function returns most recent non-tournament!
+	return gamePages
 
 
 def lambda_handler(event, context):
 
-    BUCKET_NAME = 'jeopardydata' # replace with your bucket name
+	BUCKET_NAME = 'jeopardydata' # replace with your bucket name
 
-    # could switch this to read file, rather than download it.
-    s3 = boto3.resource('s3')
-    s3.Bucket(BUCKET_NAME).download_file('raw.data', '/tmp/raw.data')
-    s3.Bucket(BUCKET_NAME).download_file('nameAge.pickle', '/tmp/nameAge.pickle')
-    s3.Bucket(BUCKET_NAME).download_file('nameGend.pickle', '/tmp/nameGend.pickle')
+	# could switch this to read file, rather than download it.
+	s3 = boto3.resource('s3')
+	s3.Bucket(BUCKET_NAME).download_file('raw.data', '/tmp/raw.data')
+	s3.Bucket(BUCKET_NAME).download_file('nameAge.pickle', '/tmp/nameAge.pickle')
+	s3.Bucket(BUCKET_NAME).download_file('nameGend.pickle', '/tmp/nameGend.pickle')
 
-    getRawData()
+	getRawData()
 
-    s3.meta.client.upload_file('/tmp/raw.data', BUCKET_NAME, 'raw.data')
+	gamePage = getMostRecentSoup()
+	for g in gamePage:
+		features,lastWin = getCurrentStatus(g)
+		if features is not None:
+			break
+
+        with bz2.BZ2File("/tmp/features.pickle","w") as f:
+                pickle.dump(features, f)
+
+	s3.meta.client.upload_file('/tmp/features.pickle', BUCKET_NAME, 'features.pickle')
+	s3.meta.client.upload_file('/tmp/raw.data', BUCKET_NAME, 'raw.data')
+
+	return features
     

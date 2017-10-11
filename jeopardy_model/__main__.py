@@ -14,6 +14,7 @@ import datetime, os, pickle, bz2, subprocess, boto3
 
 
 def main():
+	s3 = boto3.client('s3')
 	if not os.path.isdir('{}/jeopardy_model/data/'.format(os.path.expanduser("~"))):os.makedirs('{}/jeopardy_model/data'.format(os.path.expanduser("~")))
 
 	# download  - now in the cloud!
@@ -37,11 +38,24 @@ def main():
 		pickle.dump(X_fix.columns, f)
 
 	# predict - df3 is with additional row for predictions. then process in exact same way.
-	gamePage = getMostRecentSoup()
-	for g in gamePage:
-		features,lastWin = getCurrentStatus(g)
-		if features is not None:
-			break
+	#gamePage = getMostRecentSoup()
+	#for g in gamePage:
+	#	features,lastWin = getCurrentStatus(g)
+	#	if features is not None:
+	#		break
+
+
+	# this doesn't work...
+	#features = pickle.load( open( 's3://jeopardydata/features.pickle', "r" ) )
+
+        s3 = boto3.resource('s3')
+        s3.Bucket('jeopardydata').download_file('features.pickle', 'features.pickle')
+        with bz2.BZ2File("features.pickle","r") as f:
+		features = pickle.load(f)
+
+	print features
+
+
 
 	#d3 = addRow(d,features)
 	d3 = createNewInput(features) 
@@ -52,8 +66,10 @@ def main():
 	features['prob'] = prob
 
 	# tweet it!
-	daysOld = datetime.date.today() - datetime.datetime.strptime(lastWin,'%Y-%m-%d').date()
-	print "Last game is ", daysOld, " days old. From ", lastWin
+	#daysOld = datetime.date.today() - datetime.datetime.strptime(lastWin,'%Y-%m-%d').date()
+	daysOld = datetime.date.today() - datetime.datetime.strptime(features['date'], '%Y-%m-%d').date()
+
+	print "Last game is ", daysOld, " days old. From ", features['date']
 
 	if (datetime.datetime.today().weekday()==0 and daysOld.days <= 3) or (datetime.datetime.today().weekday()<=4 and daysOld.days <= 1):
 		tweetProb(features)
