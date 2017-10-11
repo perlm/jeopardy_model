@@ -2,7 +2,9 @@ from .getData import *
 from .buildModel import *
 from .tweetIt import *
 from .validation import *
-import datetime, os, pickle, bz2, subprocess
+import datetime, os, pickle, bz2, subprocess, boto3
+
+
 
 ##
 # This is the master script which will call functions from the other scripts.
@@ -14,10 +16,10 @@ import datetime, os, pickle, bz2, subprocess
 def main():
 	if not os.path.isdir('{}/jeopardy_model/data/'.format(os.path.expanduser("~"))):os.makedirs('{}/jeopardy_model/data'.format(os.path.expanduser("~")))
 
-	# download  - try and put this "in the cloud"
+	# download  - now in the cloud!
 	#getRawData()
-        cmd = "aws s3 cp  s3://jeopardydata/raw.data {}/jeopardy_model/data/raw.data".format(os.path.expanduser("~"))
-        push=subprocess.Popen(cmd, shell=True).wait()
+        #cmd = "aws s3 cp  s3://jeopardydata/raw.data {}/jeopardy_model/data/raw.data".format(os.path.expanduser("~"))
+        #push=subprocess.Popen(cmd, shell=True).wait()
 	
 
 	# model - df is from file. df2 is with features. x, scaled, fixed are after processing.

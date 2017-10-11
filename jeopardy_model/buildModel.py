@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
 from sklearn import preprocessing, feature_extraction, linear_model, metrics, model_selection
-import math, os
+import math, os, boto3
 
 ####
 # This file contains functions for building the classification model.
@@ -94,9 +94,17 @@ def predict(X_scaled,model):
 	return y_prob[-1:]
 
 def readRawFile():
+	# read in csv from s3 and return pandas dataframe
+	s3 = boto3.client('s3')
+	#obj = s3.get_object(Bucket='jeopardydata', Key='raw.data')
+	gameData = pd.read_csv('s3://jeopardydata/raw.data',delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
+	return gameData
+
+def readRawFile_local():
 	# read in csv and return pandas dataframe
 	gameData = pd.read_csv('{0}/jeopardy_model/data/raw.data'.format(os.path.expanduser("~")),delimiter=',',header=None, names=['g', 'gameNumber', 'date', 'winningDays', 'winningDollars', 'winner', 'gender', 'age', 'name', 'career', 'location'])
 	return gameData
+
 
 def constructFeatures(dff):
     #####################3
