@@ -53,9 +53,6 @@ def main():
         with bz2.BZ2File("features.pickle","r") as f:
 		features = pickle.load(f)
 
-	print features
-
-
 
 	#d3 = addRow(d,features)
 	d3 = createNewInput(features) 

@@ -22,3 +22,7 @@ g,gameNumber,date,winningDays,winningDollars,winner,gender,age,name,career,locat
 0,0,2017-07-28,2,18000,0,M,22.0,Shadi Peterman,a high school history teacher,St. Louis Missouri,9000.0,2,0,1,0,a_lt35,a_lt10k,0,teacher,0.429619947957
 0,0,2017-10-03,6,257700,0,M,18.4,Austin Rogers,bartender,New York New York,42950.0,6,0,1,0,a_lt35,c_gt30k,1,other,0.738964463613
 0,0,2017-10-10,11,394700,0,M,18.4,Austin Rogers,bartender,New York New York,35881.8181818,10,0,1,0,a_lt35,c_gt30k,1,other,0.768369020251
+0,0,2017-10-17,3,42799,0,M,30.3,Manny Abell,Naval officer,Lacey Washington,14266.3333333,3,0,1,0,a_lt35,b_10-30k,0,other,0.496721367879
+0,0,2018-01-01,1,15201,0,M,48.2,Nick Spicher,museum educator,Everett Washington,15201.0,1,-1,1,1,b_35-55,b_10-30k,0,other,0.446693221064
+0,0,2018-01-12,3,37401,0,M,52.1,Gilbert Collins,university administrator,Princeton New Jersey,12467.0,3,-1,1,0,b_35-55,b_10-30k,0,other,0.475102445501
+0,0,2018-01-12,3,36599,0,M,52.1,Gilbert Collins,university administrator,Princeton New Jersey,12199.6666667,3,-1,1,0,b_35-55,b_10-30k,0,other,0.473523191794
