@@ -17,53 +17,56 @@ def main():
 	s3 = boto3.client('s3')
 	if not os.path.isdir('{}/jeopardy_model/data/'.format(os.path.expanduser("~"))):os.makedirs('{}/jeopardy_model/data'.format(os.path.expanduser("~")))
 
-	# download  - now in the cloud!
-	#getRawData()
-        #cmd = "aws s3 cp  s3://jeopardydata/raw.data {}/jeopardy_model/data/raw.data".format(os.path.expanduser("~"))
-        #push=subprocess.Popen(cmd, shell=True).wait()
-	
+	# Local or using cloud run?
+	if (False):
+		getRawData()
+		d = readRawFile()
+		d2 = constructFeatures(d)
+		d2 = d2.loc[(d2['afterdatecutoff']==1)]
+		X, X_scaled, Y, scaler, X_fix = processData(d2,dateFeature = None)
+		model = buildLogisticModel(X_scaled,Y,X_fix)
 
-	# model - df is from file. df2 is with features. x, scaled, fixed are after processing.
-	d = readRawFile()
-	d2 = constructFeatures(d)
-	d2 = d2.loc[(d2['afterdatecutoff']==1)]
-	X, X_scaled, Y, scaler, X_fix = processData(d2,dateFeature = None)
-	model = buildLogisticModel(X_scaled,Y,X_fix)
+		with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.pickle".format(os.path.expanduser("~")),"w") as f:
+			pickle.dump(model, f)
+		with bz2.BZ2File("{}/jeopardy_model/model_pickles/scaler.pickle".format(os.path.expanduser("~")),"w") as f:
+			pickle.dump(scaler, f)
+		with bz2.BZ2File("{}/jeopardy_model/model_pickles/indexDict.pickle".format(os.path.expanduser("~")),"w") as f:
+			pickle.dump(columns, f)
 
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.pickle".format(os.path.expanduser("~")),"w") as f:
-		pickle.dump(model, f)
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/scaler.pickle".format(os.path.expanduser("~")),"w") as f:
-		pickle.dump(scaler, f)
-	with bz2.BZ2File("{}/jeopardy_model/model_pickles/indexDict.pickle".format(os.path.expanduser("~")),"w") as f:
-		pickle.dump(X_fix.columns, f)
+		gamePage = getMostRecentSoup()
+		for g in gamePage:
+			features,lastWin = getCurrentStatus(g)
+			if features is not None:
+				break
+	else:
+		s3 = boto3.resource('s3')
+		s3.Bucket('jeopardydata').download_file('raw.data', '{}/jeopardy_model/data/raw.data'.format(os.path.expanduser("~")))
 
+                with bz2.BZ2File("{}/jeopardy_model/model_pickles/scaler.pickle".format(os.path.expanduser("~")),"r") as f:
+                        scaler = pickle.load(f)
+                with bz2.BZ2File("{}/jeopardy_model/model_pickles/model.pickle".format(os.path.expanduser("~")),"r") as f:
+                        model = pickle.load(f)
+                with bz2.BZ2File("{}/jeopardy_model/model_pickles/indexDict.pickle".format(os.path.expanduser("~")),"r") as f:
+                        columns = pickle.load(f)
+
+        	s3 = boto3.resource('s3')
+        	s3.Bucket('jeopardydata').download_file('features.pickle', 'features.pickle')
+        	with bz2.BZ2File("features.pickle","r") as f:
+			features = pickle.load(f)
+
+
+
+	# df is from file. df2 is with features. x, scaled, fixed are after processing.
 	# predict - df3 is with additional row for predictions. then process in exact same way.
-	#gamePage = getMostRecentSoup()
-	#for g in gamePage:
-	#	features,lastWin = getCurrentStatus(g)
-	#	if features is not None:
-	#		break
 
-
-	# this doesn't work...
-	#features = pickle.load( open( 's3://jeopardydata/features.pickle', "r" ) )
-
-        s3 = boto3.resource('s3')
-        s3.Bucket('jeopardydata').download_file('features.pickle', 'features.pickle')
-        with bz2.BZ2File("features.pickle","r") as f:
-		features = pickle.load(f)
-
-
-	#d3 = addRow(d,features)
 	d3 = createNewInput(features) 
 	d4 = constructFeatures(d3)
 	d4 = d4.loc[(d4['afterdatecutoff']==1)]
-	X, X_scaled, Y, scaler, X_fix = processData(d4, None,scaler,X_fix.columns)
+	X, X_scaled, Y, scaler, X_fix = processData(d4, None,scaler,columns)
 	prob = predict(X_scaled,model)
 	features['prob'] = prob
 
 	# tweet it!
-	#daysOld = datetime.date.today() - datetime.datetime.strptime(lastWin,'%Y-%m-%d').date()
 	daysOld = datetime.date.today() - datetime.datetime.strptime(features['date'], '%Y-%m-%d').date()
 
 	print "Last game is ", daysOld, " days old. From ", features['date']
@@ -76,7 +79,7 @@ def main():
 
         ##########
         # validate previous predictions!
-        validate()
+        #validate()
 
 
 

@@ -90,7 +90,7 @@ def predict_all(X_scaled,model):
 def predict(X_scaled,model):
 	# for a given model and independent data, generate predictions
 	y_prob = model.predict_proba(X_scaled)[:,1]
-	print "Avg of predictions= ", np.mean(y_prob)
+	#print "Avg of predictions= ", np.mean(y_prob)
 	return y_prob[-1:]
 
 def readRawFile():
